@@ -1,122 +1,60 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState } from "react";
+import { useCombatTracker } from "./hooks/useCombatTracker";
+import { Header } from "./components/Header";
+import { StatsBar } from "./components/StatsBar";
+import { ActionControls } from "./components/ActionControls";
+import { DeathNotice } from "./components/DeathNotice";
+import { InitiativeList } from "./components/InitiativeList";
+import { AddCombatantModal } from "./components/AddCombatantModal";
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [showAddModal, setShowAddModal] = useState(false);
+  const {
+    sorted, currentTurn, round, activeCombatant, players, monsters, dead,
+    nextTurn, prevTurn, resetCombat, handleHpChange, handleRemove,
+    handleAddCondition, handleRemoveCondition, handleAdd,
+  } = useCombatTracker();
+
+  function onAddCombatant(c: Parameters<typeof handleAdd>[0]) {
+    handleAdd(c);
+    setShowAddModal(false);
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
+    <div className="min-h-screen w-full" style={{ background: "var(--background)", fontFamily: "'Crimson Text', serif" }}>
+      <div
+        className="pointer-events-none fixed inset-0 opacity-[0.03]"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='2' height='2' fill='%23fff'/%3E%3C/svg%3E")`,
+          backgroundRepeat: "repeat",
+        }}
+      />
+      <div className="relative mx-auto max-w-2xl px-4 py-6">
+        <Header />
+        <StatsBar round={round} playersCount={players.length} monstersCount={monsters.length} activeName={activeCombatant?.name} />
+        <ActionControls
+          onPrevTurn={prevTurn}
+          onNextTurn={nextTurn}
+          onAdd={() => setShowAddModal(true)}
+          onReset={resetCombat}
+          prevDisabled={currentTurn === 0 && round === 1}
+        />
+        <DeathNotice fallen={dead} />
+        <InitiativeList
+          combatants={sorted}
+          currentTurn={currentTurn}
+          onHpChange={handleHpChange}
+          onRemove={handleRemove}
+          onAddCondition={handleAddCondition}
+          onRemoveCondition={handleRemoveCondition}
+        />
+        <div className="mt-8 text-center">
+          <p style={{ color: "var(--muted-foreground)", fontSize: "0.75rem", fontFamily: "'JetBrains Mono', monospace" }}>
+            May your rolls be true
           </p>
         </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      </div>
+      {showAddModal && <AddCombatantModal onAdd={onAddCombatant} onClose={() => setShowAddModal(false)} />}
+    </div>
+  );
 }
-
-export default App
